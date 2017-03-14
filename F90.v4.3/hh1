@@ -1,0 +1,28 @@
+#!/bin/csh -f 
+set source1=./dmsm.f90
+set source2=./dmsm.example1.f90
+set compiler=mpiifort
+set ccompiler=mpiicc
+set options=" -fopenmp -O3"
+set library=" dmsm.ctimer.o "
+set deletable="./*.o ./*.mod"
+if(null$2 == null) then
+   echo "hh followed with number_of_processes and number_of_threads please."
+   exit
+endif
+
+rm ./a.out 
+dos2unix $source1 $source1
+dos2unix $source2 $source2
+$ccompiler $options -c dmsm.ctimer.c
+$compiler -cpp $options -o ./a.out $source1 $source2 $library
+rm $deletable
+echo Please press the ENTER key to run with processes x threads: $1x$2
+$<
+echo $2 > TotalNumberOfOpenMPThreadsPerProcess
+setenv PARALLEL $2
+setenv OMP_NUM_THREADS $2
+mpirun -np $1 ./a.out
+exit
+
+
